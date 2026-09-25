@@ -1,0 +1,16 @@
+{
+  "notice": "Welcome to AniKaze Premium Anime Streaming!",
+  "customAnime": [
+    {
+      "id": 99001,
+      "title": "Demon Slayer: Hashira Training Arc",
+      "score": "8.9",
+      "episodes": 8,
+      "year": 2024,
+      "genre": "Action",
+      "img": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx166610-38G3430P9p43.jpg",
+      "streamUrl": "https://vidsrc.me/embed/anime?mal_id=55701&ep=1",
+      "desc": "Tanjiro goes to see the Stone Hashira, Himejima, who intends to prepare him for the upcoming battles."
+    }
+  ]
+}
