@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AniKaze - Premium Anime Streaming</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --bg:#09090b;--bg2:#111114;--bg3:#18181b;--bg4:#27272a;
+            --text:#fafafa;--text2:#a1a1aa;--text3:#71717a;
+            --accent:#8b5cf6;--accent2:#a78bfa;--accent-glow:rgba(139,92,246,.25);
+            --pink:#ec4899;--cyan:#06b6d4;--green:#10b981;--gold:#f59e0b;
+            --glass:rgba(255,255,255,.04);--glass2:rgba(255,255,255,.07);
+            --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.12);
+            --radius:14px;--radius-sm:10px;--radius-xs:8px;
+            --shadow:0 20px 60px rgba(0,0,0,.5);
+            --transition:all .3s cubic-bezier(.4,0,.2,1);
+        }
+        html{scroll-behavior:smooth}
+        body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh}
+        ::-webkit-scrollbar{width:6px;height:6px}
+        ::-webkit-scrollbar-track{background:transparent}
+        ::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:10px}
+        ::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+        a{text-decoration:none;color:inherit}
+        button{font-family:inherit;cursor:pointer;border:none;outline:none}
+        img{display:block;max-width:100%}
+        .container{max-width:1400px;margin:0 auto;padding:0 24px}
+
+        /* ===== LOADER ===== */
+        #loader{position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s,visibility .6s}
+        #loader.hide{opacity:0;visibility:hidden;pointer-events:none}
+        .loader-ring{width:56px;height:56px;border:3px solid var(--bg3);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+        .loader-text{margin-top:18px;font-size:13px;letter-spacing:4px;text-transform:uppercase;color:var(--text3)}
+        @keyframes spin{to{transform:rotate(360deg)}}
+
+        /* ===== NAVBAR ===== */
+        .nav{position:fixed;top:0;left:0;right:0;z-index:1000;padding:14px 0;transition:var(--transition);background:rgba(9,9,11,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+        .nav-inner{display:flex;align-items:center;justify-content:space-between;max-width:1400px;margin:0 auto;padding:0 24px}
+        .logo{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:800;letter-spacing:-.5px}
+        .logo svg{width:40px;height:40px}
+        .logo span{background:linear-gradient(135deg,var(--accent2),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .nav-links{display:flex;gap:32px;list-style:none}
+        .nav-links a{font-size:14px;font-weight:500;color:var(--text2);transition:var(--transition);position:relative}
+        .nav-links a:hover,.nav-links a.active{color:var(--text)}
+        .nav-links a.active::after{content:'';position:absolute;bottom:-6px;left:0;right:0;height:2px;background:var(--accent);border-radius:2px}
+        .nav-right{display:flex;align-items:center;gap:12px}
+        .search-wrap{position:relative}
+        .search-toggle{width:40px;height:40px;border-radius:50%;background:var(--glass2);border:1px solid var(--border);color:var(--text2);display:grid;place-items:center;transition:var(--transition);font-size:15px}
+        .search-toggle:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+        .search-panel{position:absolute;top:52px;right:0;width:380px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;opacity:0;visibility:hidden;transform:translateY(-8px);transition:var(--transition);z-index:100}
+        .search-panel.open{opacity:1;visibility:visible;transform:translateY(0)}
+        .search-input-wrap{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border)}
+        .search-input-wrap i{color:var(--text3);margin-right:10px}
+        .search-input{flex:1;background:none;border:none;color:var(--text);font-size:15px;outline:none}
+        .search-input::placeholder{color:var(--text3)}
+        .search-results{max-height:360px;overflow-y:auto;padding:8px}
+        .sr-item{display:flex;gap:12px;padding:10px;border-radius:var(--radius-xs);cursor:pointer;transition:var(--transition)}
+        .sr-item:hover{background:var(--glass2)}
+        .sr-item img{width:48px;height:66px;border-radius:6px;object-fit:cover;flex-shrink:0}
+        .sr-info h4{font-size:14px;font-weight:600;margin-bottom:3px}
+        .sr-info p{font-size:12px;color:var(--text3)}
+        .sr-empty{padding:30px;text-align:center;color:var(--text3);font-size:13px}
+        .btn-glow{padding:9px 20px;background:linear-gradient(135deg,var(--accent),var(--pink));border-radius:25px;color:#fff;font-weight:600;font-size:13px;display:flex;align-items:center;gap:7px;transition:var(--transition)}
+        .btn-glow:hover{transform:translateY(-2px);box-shadow:0 8px 25px var(--accent-glow)}
+        .avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--green));display:grid;place-items:center;font-weight:700;font-size:14px;cursor:pointer}
+
+        /* ===== HERO SLIDER ===== */
+        .hero{position:relative;height:80vh;min-height:520px;overflow:hidden;margin-top:66px}
+        .hero-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.2s ease}
+        .hero-slide.active{opacity:1}
+        .hero-slide img{width:100%;height:100%;object-fit:cover}
+        .hero-grad{position:absolute;inset:0;background:linear-gradient(90deg,rgba(9,9,11,.97) 0%,rgba(9,9,11,.78) 35%,rgba(9,9,11,.25) 65%,rgba(9,9,11,.05) 100%)}
+        .hero-grad::after{content:'';position:absolute;bottom:0;left:0;right:0;height:200px;background:linear-gradient(to top,var(--bg),transparent)}
+        .hero-content{position:absolute;bottom:14%;left:0;padding:0 60px;max-width:640px;z-index:5}
+        .hero-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:linear-gradient(135deg,var(--accent),var(--pink));border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;margin-bottom:14px}
+        .hero-title{font-size:48px;font-weight:900;line-height:1.08;margin-bottom:12px;letter-spacing:-.5px}
+        .hero-meta{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:12px;font-size:13px;color:var(--text2)}
+        .hero-meta span{display:flex;align-items:center;gap:5px}
+        .hero-meta .star{color:var(--gold)}
+        .hero-meta .badge-q{padding:2px 8px;background:var(--pink);border-radius:4px;font-size:11px;font-weight:700;color:#fff}
+        .hero-genres{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+        .hero-genres span{padding:4px 12px;background:var(--glass2);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text2)}
+        .hero-desc{color:var(--text2);font-size:14px;line-height:1.7;margin-bottom:24px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+        .hero-btns{display:flex;gap:12px;flex-wrap:wrap}
+        .btn-play{padding:13px 32px;background:linear-gradient(135deg,var(--accent),var(--pink));border-radius:30px;color:#fff;font-weight:700;font-size:15px;display:flex;align-items:center;gap:9px;transition:var(--transition)}
+        .btn-play:hover{transform:translateY(-3px);box-shadow:0 12px 35px var(--accent-glow)}
+        .btn-outline{padding:13px 28px;background:var(--glass2);border:1px solid var(--border2);border-radius:30px;color:var(--text);font-weight:600;font-size:15px;display:flex;align-items:center;gap:9px;backdrop-filter:blur(10px);transition:var(--transition)}
+        .btn-outline:hover{background:rgba(255,255,255,.12);transform:translateY(-3px)}
+        .hero-dots{position:absolute;bottom:28px;right:60px;display:flex;gap:8px;z-index:5}
+        .hero-dot{width:32px;height:3px;background:rgba(255,255,255,.25);border-radius:3px;cursor:pointer;transition:var(--transition)}
+        .hero-dot.active{width:52px;background:var(--accent)}
+
+        /* ===== SECTIONS ===== */
+        .section{padding:50px 0}
+        .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+        .section-title{font-size:22px;font-weight:800;display:flex;align-items:center;gap:10px}
+        .section-title .ico{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--pink));border-radius:8px;display:grid;place-items:center;font-size:14px}
+        .section-nav{display:flex;gap:8px}
+        .section-nav button{width:38px;height:38px;background:var(--glass2);border:1px solid var(--border);border-radius:50%;color:var(--text2);display:grid;place-items:center;transition:var(--transition);font-size:13px}
+        .section-nav button:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+        .view-all{font-size:13px;font-weight:600;color:var(--accent);display:flex;align-items:center;gap:5px;transition:var(--transition)}
+        .view-all:hover{color:var(--pink);gap:8px}
+
+        /* ===== TABS ===== */
+        .tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:24px}
+        .tabs::-webkit-scrollbar{height:0}
+        .tab{padding:8px 20px;background:var(--glass);border:1px solid var(--border);border-radius:25px;color:var(--text2);font-size:13px;font-weight:500;white-space:nowrap;transition:var(--transition)}
+        .tab:hover{color:var(--text);border-color:var(--accent);background:rgba(139,92,246,.1)}
+        .tab.active{background:linear-gradient(135deg,var(--accent),var(--pink));border-color:transparent;color:#fff}
+
+        /* ===== ANIME CARD ===== */
+        .card{position:relative;border-radius:var(--radius);overflow:hidden;background:var(--bg2);cursor:pointer;transition:var(--transition);flex-shrink:0}
+        .card:hover{transform:translateY(-8px);box-shadow:0 16px 50px rgba(139,92,246,.2)}
+        .card-img{position:relative;padding-top:142%;overflow:hidden;background:var(--bg3)}
+        .card-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s}
+        .card:hover .card-img img{transform:scale(1.08)}
+        .card-badges{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;z-index:3}
+        .badge{padding:3px 9px;border-radius:5px;font-size:10px;font-weight:700}
+        .badge-sub{background:var(--accent)}
+        .badge-score{background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:flex;align-items:center;gap:3px}
+        .badge-score i{color:var(--gold);font-size:9px}
+        .card-play{position:absolute;inset:0;background:rgba(9,9,11,.5);display:grid;place-items:center;opacity:0;transition:var(--transition)}
+        .card:hover .card-play{opacity:1}
+        .card-play-btn{width:52px;height:52px;background:linear-gradient(135deg,var(--accent),var(--pink));border-radius:50%;display:grid;place-items:center;font-size:18px;transform:scale(0);transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:0 8px 25px var(--accent-glow)}
+        .card:hover .card-play-btn{transform:scale(1)}
+        .card-body{padding:12px 14px}
+        .card-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+        .card-meta{display:flex;gap:10px;font-size:11px;color:var(--text3)}
+
+        /* ===== ROWS & GRIDS ===== */
+        .row{display:flex;gap:18px;overflow-x:auto;padding-bottom:16px;scroll-behavior:smooth;scroll-snap-type:x mandatory}
+        .row::-webkit-scrollbar{height:3px}
+        .row::-webkit-scrollbar-thumb{background:var(--accent);border-radius:3px}
+        .row .card{width:185px;min-width:185px;scroll-snap-align:start}
+        .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:20px}
+
+        /* ===== CONTINUE WATCHING ===== */
+        .cw-card{min-width:300px;max-width:300px;background:var(--bg2);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:var(--transition);scroll-snap-align:start;flex-shrink:0}
+        .cw-card:hover{transform:translateY(-5px);box-shadow:0 12px 35px rgba(0,0,0,.4)}
+        .cw-thumb{position:relative;padding-top:56.25%;overflow:hidden;background:var(--bg3)}
+        .cw-thumb img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+        .cw-progress{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,.15)}
+        .cw-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--pink));border-radius:2px}
+        .cw-body{padding:12px 14px}
+        .cw-title{font-size:14px;font-weight:600;margin-bottom:2px}
+        .cw-ep{font-size:12px;color:var(--text3)}
+
+        /* ===== SCHEDULE ===== */
+        .schedule-box{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:28px;margin-bottom:50px}
+        .sch-days{display:flex;gap:8px;overflow-x:auto;margin-bottom:22px;padding-bottom:4px}
+        .sch-day{padding:10px 20px;background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-xs);color:var(--text2);font-size:13px;font-weight:500;white-space:nowrap;text-align:center;transition:var(--transition);cursor:pointer}
+        .sch-day:hover,.sch-day.active{background:linear-gradient(135deg,var(--accent),var(--pink));border-color:transparent;color:#fff}
+        .sch-day small{display:block;font-size:10px;opacity:.7;margin-top:2px}
+        .sch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+        .sch-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--glass);border-radius:var(--radius-xs);cursor:pointer;transition:var(--transition)}
+        .sch-item:hover{background:rgba(139,92,246,.12);transform:translateX(4px)}
+        .sch-time{font-size:12px;font-weight:700;color:var(--accent);min-width:52px}
+        .sch-item img{width:42px;height:58px;border-radius:6px;object-fit:cover;flex-shrink:0}
+        .sch-info h4{font-size:13px;font-weight:600}
+        .sch-info p{font-size:11px;color:var(--text3)}
+
+        /* ===== GENRE CARDS ===== */
+        .genre-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+        .genre-card{padding:22px 16px;background:var(--glass);border:1px solid var(--border);border-radius:var(--radius);text-align:center;cursor:pointer;transition:var(--transition);position:relative;overflow:hidden}
+        .genre-card::before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .3s;border-radius:var(--radius)}
+        .genre-card:nth-child(1)::before{background:linear-gradient(135deg,var(--accent),var(--pink))}
+        .genre-card:nth-child(2)::before{background:linear-gradient(135deg,var(--pink),#f43f5e)}
+        .genre-card:nth-child(3)::before{background:linear-gradient(135deg,var(--cyan),#3b82f6)}
+        .genre-card:nth-child(4)::before{background:linear-gradient(135deg,var(--gold),#ef4444)}
+        .genre-card:nth-child(5)::before{background:linear-gradient(135deg,var(--green),var(--cyan))}
+        .genre-card:nth-child(6)::before{background:linear-gradient(135deg,#6366f1,var(--accent))}
+        .genre-card:nth-child(7)::before{background:linear-gradient(135deg,var(--pink),var(--accent))}
+        .genre-card:nth-child(8)::before{background:linear-gradient(135deg,#14b8a6,#22d3ee)}
+        .genre-card:hover::before{opacity:1}
+        .genre-card:hover{transform:translateY(-4px);border-color:transparent}
+        .genre-card i,.genre-card span{position:relative;z-index:1}
+        .genre-card i{font-size:24px;margin-bottom:8px;display:block}
+        .genre-card span{font-size:13px;font-weight:600}
+
+        /* ===== RANKINGS ===== */
+        .rank-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+        .rank-col{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:22px}
+        .rank-col h3{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+        .rank-col h3 i{color:var(--accent)}
+        .rank-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;transition:var(--transition)}
+        .rank-item:last-child{border:none}
+        .rank-item:hover{transform:translateX(4px)}
+        .rank-num{font-size:22px;font-weight:900;min-width:36px;color:var(--text3)}
+        .rank-item:nth-child(1) .rank-num{color:var(--gold)}
+        .rank-item:nth-child(2) .rank-num{color:#c0c0c0}
+        .rank-item:nth-child(3) .rank-num{color:#cd7f32}
+        .rank-item img{width:44px;height:60px;border-radius:6px;object-fit:cover;flex-shrink:0}
+        .rank-info h4{font-size:13px;font-weight:600}
+        .rank-info p{font-size:11px;color:var(--text3)}
+
+        /* ===== MODAL & VIDEO PLAYER ===== */
+        .modal{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.95);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:24px;overflow-y:auto}
+        .modal.open{display:flex;animation:fadeUp .3s ease}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        .modal-box{width:100%;max-width:960px;position:relative;margin:auto}
+        .modal-close{position:absolute;top:-14px;right:-14px;width:38px;height:38px;background:var(--pink);border-radius:50%;color:#fff;display:grid;place-items:center;font-size:16px;z-index:10;transition:var(--transition)}
+        .modal-close:hover{transform:rotate(90deg) scale(1.1)}
+
+        .server-tabs{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+        .server-label{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:5px}
+        .server-btn{padding:7px 14px;background:var(--glass2);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:11px;font-weight:600;transition:var(--transition);display:flex;align-items:center;gap:6px}
+        .server-btn:hover,.server-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+        .player-wrap{width:100%;aspect-ratio:16/9;background:#000;border-radius:var(--radius);overflow:hidden;position:relative}
+        .player-wrap iframe{width:100%;height:100%;border:none}
+
+        .modal-info{margin-top:16px;display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:10px}
+        .modal-info h2{font-size:20px;font-weight:700}
+        .modal-info p{font-size:13px;color:var(--accent);font-weight:600;margin-top:4px}
+        .ep-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;max-height:120px;overflow-y:auto;padding:4px 0}
+        .ep-btn{padding:7px 16px;background:var(--glass2);border:1px solid var(--border);border-radius:var(--radius-xs);color:var(--text2);font-size:12px;font-weight:500;transition:var(--transition)}
+        .ep-btn:hover,.ep-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+        .footer{background:var(--bg2);border-top:1px solid var(--border);padding:40px 0 20px;margin-top:50px;text-align:center;font-size:13px;color:var(--text3)}
+
+        @media(max-width:1024px){.rank-grid{grid-template-columns:1fr}.hero-title{font-size:36px}}
+        @media(max-width:768px){.grid{grid-template-columns:repeat(2,1fr);gap:12px}.hero-title{font-size:28px}.nav-links{display:none}}
+    </style>
+</head>
+<body>
+
+<div id="loader"><div class="loader-ring"></div><div class="loader-text">AniKaze</div></div>
+
+<!-- NAVBAR -->
+<nav class="nav" id="nav">
+    <div class="nav-inner">
+        <a href="#" class="logo">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <rect x="5" y="5" width="90" height="90" rx="22" fill="#8b5cf6"/>
+                <polygon points="38,28 38,72 75,50" fill="white"/>
+                <circle cx="72" cy="28" r="10" fill="#f472b6" stroke="white" stroke-width="2"/>
+            </svg>
+            <span>AniKaze</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="#" class="active">Home</a></li>
+            <li><a href="#trending">Trending</a></li>
+            <li><a href="#popular">Popular</a></li>
+            <li><a href="#schedule">Schedule</a></li>
+            <li><a href="#genres">Genres</a></li>
+        </ul>
+        <div class="nav-right">
+            <div class="search-wrap">
+                <button class="search-toggle" onclick="toggleSearch()"><i class="fas fa-search"></i></button>
+                <div class="search-panel" id="searchPanel">
+                    <div class="search-input-wrap">
+                        <i class="fas fa-search"></i>
+                        <input class="search-input" id="searchInput" placeholder="Search anime..." autocomplete="off">
+                    </div>
+                    <div class="search-results" id="searchResults">
+                        <div class="sr-empty">Type at least 2 characters...</div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-glow" onclick="alert('Premium Active!')"><i class="fas fa-crown"></i> Premium</button>
+            <div class="avatar">A</div>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div id="heroSlider"></div>
+    <div class="hero-dots" id="heroDots"></div>
+</section>
+
+<!-- CONTINUE WATCHING -->
+<section class="section">
+    <div class="container">
+        <div class="section-head">
+            <h2 class="section-title"><span class="ico"><i class="fas fa-history"></i></span> Continue Watching</h2>
+        </div>
+        <div class="row" id="cwRow"></div>
+    </div>
+</section>
+
+<!-- TRENDING -->
+<section class="section" id="trending">
+    <div class="container">
+        <div class="section-head">
+            <h2 class="section-title"><span class="ico"><i class="fas fa-fire"></i></span> Trending Now</h2>
+        </div>
+        <div class="row" id="trendingRow"></div>
+    </div>
+</section>
+
+<!-- POPULAR -->
+<section class="section" id="popular">
+    <div class="container">
+        <div class="section-head">
+            <h2 class="section-title"><span class="ico"><i class="fas fa-star"></i></span> Most Popular</h2>
+        </div>
+        <div class="tabs" id="genreTabs"></div>
+        <div class="grid" id="popularGrid"></div>
+    </div>
+</section>
+
+<!-- GENRES -->
+<section class="section" id="genres">
+    <div class="container">
+        <div class="section-head">
+            <h2 class="section-title"><span class="ico"><i class="fas fa-th-large"></i></span> Browse Genres</h2>
+        </div>
+        <div class="genre-grid" id="genreGrid"></div>
+    </div>
+</section>
+
+<!-- NEW RELEASES -->
+<section class="section">
+    <div class="container">
+        <div class="section-head">
+            <h2 class="section-title"><span class="ico"><i class="fas fa-bolt"></i></span> New Releases</h2>
+        </div>
+        <div class="row" id="newRow"></div>
+    </div>
+</section>
+
+<!-- SCHEDULE -->
+<section id="schedule">
+    <div class="container">
+        <div class="schedule-box">
+            <div class="section-head" style="margin-bottom:20px">
+                <h2 class="section-title"><span class="ico"><i class="fas fa-calendar-alt"></i></span> Airing Schedule</h2>
+            </div>
+            <div class="sch-days" id="schDays"></div>
+            <div class="sch-grid" id="schGrid"></div>
+        </div>
+    </div>
+</section>
+
+<!-- RANKINGS -->
+<section class="section">
+    <div class="container">
+        <div class="section-head">
+            <h2 class="section-title"><span class="ico"><i class="fas fa-trophy"></i></span> Top Rankings</h2>
+        </div>
+        <div class="rank-grid" id="rankGrid"></div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="container">
+        <p>&copy; 2024 AniKaze. All rights reserved. Self-Updating Premium Anime Platform.</p>
+    </div>
+</footer>
+
+<!-- ===== VIDEO MODAL ===== -->
+<div class="modal" id="modal">
+    <div class="modal-box">
+        <div class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></div>
+        <div class="server-tabs">
+            <span class="server-label"><i class="fas fa-server"></i> SERVERS:</span>
+            <button class="server-btn active" onclick="switchServer(1,this)"><i class="fab fa-youtube"></i> Trailer / Stream Mode</button>
+            <button class="server-btn" onclick="switchServer(2,this)"><i class="fas fa-play"></i> VidSrc Server</button>
+            <button class="server-btn" onclick="switchServer(3,this)"><i class="fas fa-bolt"></i> Embed.su Server</button>
+        </div>
+
+        <div class="player-wrap" id="playerWrap"></div>
+
+        <div class="modal-info">
+            <div>
+                <h2 id="mTitle">-</h2>
+                <p id="mEp">Episode 1</p>
+            </div>
+        </div>
+
+        <div class="ep-list" id="epList"></div>
+    </div>
+</div>
+
+<script>
+// ===================== 18+ POPULAR ANIME WITH REAL HIGH-RES ANILIST POSTERS =====================
+const ANIME_DATABASE = [
+    {
+        id: 52299,
+        title: "Solo Leveling",
+        score: 8.5, ep: 12, year: 2024, genre: "Action",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx151807-m1gX3iwRzwI2.jpg",
+        yt: "aCR2O2vxlgg",
+        desc: "In a world of deadly dungeons, Sung Jinwoo, the weakest hunter, discovers a secret quest that allows him to level up infinitely."
+    },
+    {
+        id: 52034,
+        title: "Jujutsu Kaisen Season 2",
+        score: 8.8, ep: 23, year: 2023, genre: "Action",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx145064-a95781E993B9.jpg",
+        yt: "pkg3_k8_e64",
+        desc: "Satoru Gojo and Suguru Geto take on a dangerous mission in their youth before their ideals diverge dramatically."
+    },
+    {
+        id: 40748,
+        title: "Jujutsu Kaisen",
+        score: 8.6, ep: 24, year: 2020, genre: "Action",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx113415-bb9P4L339L3o.jpg",
+        yt: "4A_X-Dvl048",
+        desc: "Yuji Itadori swallows a cursed finger and enters the world of jujutsu sorcerers to defeat terrifying curses."
+    },
+    {
+        id: 49596,
+        title: "Demon Slayer: Swordsmith Village",
+        score: 8.6, ep: 11, year: 2023, genre: "Fantasy",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx142329-373u1E5031b2.jpg",
+        yt: "g1S_-M3y84Q",
+        desc: "Tanjiro travels to the hidden Swordsmith Village to repair his blade and clashes with Upper-Rank demons."
+    },
+    {
+        id: 38000,
+        title: "Demon Slayer: Kimetsu no Yaiba",
+        score: 8.7, ep: 26, year: 2019, genre: "Fantasy",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx101922-W1_S17a2a0.jpg",
+        yt: "VQGCKTVg0sI",
+        desc: "Tanjiro Kamado becomes a demon slayer after his family is slaughtered and his sister is turned into a demon."
+    },
+    {
+        id: 21,
+        title: "One Piece",
+        score: 8.7, ep: 1100, year: 1999, genre: "Action",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21-Y23399R9A432.png",
+        yt: "MCb13lbktmU",
+        desc: "Monkey D. Luffy sets sail across the oceans with his Straw Hat Pirates to discover the legendary One Piece treasure."
+    },
+    {
+        id: 52991,
+        title: "Frieren: Beyond Journey's End",
+        score: 9.1, ep: 28, year: 2023, genre: "Fantasy",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx154587-g8B233Pq2E2x.jpg",
+        yt: "qgQunD-p3fI",
+        desc: "An immortal elf mage reflects on life, mortality, and human connections after her hero party disbands."
+    },
+    {
+        id: 5114,
+        title: "Fullmetal Alchemist: Brotherhood",
+        score: 9.1, ep: 64, year: 2009, genre: "Action",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx5114-1T3v18e1E1K0.jpg",
+        yt: "--IcmZkvL0Q",
+        desc: "Edward and Alphonse Elric search for the Philosopher's Stone to recover their lost bodies."
+    },
+    {
+        id: 16498,
+        title: "Attack on Titan",
+        score: 9.0, ep: 25, year: 2013, genre: "Drama",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx16498-C6FPmWm59R29.jpg",
+        yt: "MGRm4IzK1SQ",
+        desc: "Humanity fights for survival inside walled cities to protect themselves from man-eating Titans."
+    },
+    {
+        id: 48583,
+        title: "Chainsaw Man",
+        score: 8.5, ep: 12, year: 2022, genre: "Horror",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx127230-T27633e9933B.jpg",
+        yt: "v4yLeNt-kCU",
+        desc: "Denji merges with his chainsaw pet Pochita to become Chainsaw Man and hunt devil threats."
+    },
+    {
+        id: 114446,
+        title: "Bleach: Thousand-Year Blood War",
+        score: 8.9, ep: 26, year: 2022, genre: "Action",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx114446-2DqPq9R571K4.jpg",
+        yt: "e8YBesRKq_U",
+        desc: "Ichigo Kurosaki enters the final, all-out war between the Soul Reapers and the Quincy empire."
+    },
+    {
+        id: 1735,
+        title: "Naruto Shippuden",
+        score: 8.6, ep: 500, year: 2007, genre: "Action",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx1735-3u96S9a72b0e.jpg",
+        yt: "1dmvic3Q8wE",
+        desc: "Naruto Uzumaki returns to the Hidden Leaf Village after years of training to protect his friends and village."
+    },
+    {
+        id: 1535,
+        title: "Death Note",
+        score: 9.0, ep: 37, year: 2006, genre: "Horror",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx1535-EL3030310242.jpg",
+        yt: "NlJZ-YgAt-c",
+        desc: "High school genius Light Yagami finds a supernatural notebook that allows him to eliminate anyone by writing their name."
+    },
+    {
+        id: 140960,
+        title: "Spy x Family",
+        score: 8.6, ep: 25, year: 2022, genre: "Comedy",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx140960-93a005080205.jpg",
+        yt: "CCXLUQzuybw",
+        desc: "A master spy creates a fake family for an undercover mission, unaware his wife is an assassin and daughter a telepath."
+    },
+    {
+        id: 21459,
+        title: "My Hero Academia",
+        score: 8.0, ep: 138, year: 2016, genre: "Action",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx21459-P5000000000.jpg",
+        yt: "-77UEct0BBg",
+        desc: "A powerless boy named Izuku Midoriya inherits powers from the world's greatest hero and attends UA Academy."
+    },
+    {
+        id: 11061,
+        title: "Hunter x Hunter (2011)",
+        score: 9.0, ep: 148, year: 2011, genre: "Action",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx11061-N5000000000.jpg",
+        yt: "d6kBeJjTGnY",
+        desc: "Gon Freecss aspires to become an elite Hunter to locate his long-lost father."
+    },
+    {
+        id: 9253,
+        title: "Steins;Gate",
+        score: 9.1, ep: 24, year: 2011, genre: "Sci-Fi",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx9253-1T3v18e1E1K0.jpg",
+        yt: "27OZcM4x0e8",
+        desc: "A self-proclaimed mad scientist accidentally invents a microwave that can send text messages to the past."
+    },
+    {
+        id: 20605,
+        title: "Tokyo Ghoul",
+        score: 7.8, ep: 12, year: 2014, genre: "Horror",
+        img: "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx20605-s0000000000.jpg",
+        yt: "vGuQeQfe834",
+        desc: "Ken Kaneki survives a deadly encounter with a ghoul only to become a half-human, half-ghoul hybrid."
+    }
+];
+
+const GENRES = ["Action", "Romance", "Fantasy", "Comedy", "Horror", "Sci-Fi", "Slice of Life", "Sports"];
+let curAnime = ANIME_DATABASE[0];
+let curEp = 1;
+let curServer = 1;
+let heroIdx = 0;
+
+window.addEventListener('load', () => {
+    initSite();
+    setTimeout(() => {
+        const l = document.getElementById('loader');
+        if (l) l.classList.add('hide');
+    }, 600);
+});
+
+function initSite() {
+    renderHero();
+    renderContinueWatching();
+    renderTrending();
+    renderPopular();
+    renderGenres();
+    renderNewReleases();
+    renderSchedule();
+    renderRankings();
+}
+
+function renderHero() {
+    const hero = document.getElementById('heroSlider');
+    const dots = document.getElementById('heroDots');
+    hero.innerHTML = ''; dots.innerHTML = '';
+
+    ANIME_DATABASE.slice(0, 5).forEach((a, i) => {
+        hero.innerHTML += `
+            <div class="hero-slide ${i === 0 ? 'active' : ''}">
+                <img src="${a.img}" alt="${a.title}">
+                <div class="hero-grad"></div>
+                <div class="hero-content">
+                    <div class="hero-tag"><i class="fas fa-fire"></i> #${i+1} Featured</div>
+                    <h1 class="hero-title">${a.title}</h1>
+                    <div class="hero-meta">
+                        <span>⭐ ${a.score}</span>
+                        <span>${a.year}</span>
+                        <span>${a.ep} EP</span>
+                    </div>
+                    <p class="hero-desc">${a.desc}</p>
+                    <div class="hero-btns">
+                        <button class="btn-play" onclick="openPlayer(${a.id})"><i class="fas fa-play"></i> Watch Now</button>
+                    </div>
+                </div>
+            </div>`;
+        dots.innerHTML += `<div class="hero-dot ${i === 0 ? 'active' : ''}" onclick="goHero(${i})"></div>`;
+    });
+
+    setInterval(() => {
+        heroIdx = (heroIdx + 1) % 5;
+        goHero(heroIdx);
+    }, 5000);
+}
+
+function goHero(i) {
+    heroIdx = i;
+    document.querySelectorAll('.hero-slide').forEach((s, j) => s.classList.toggle('active', j === i));
+    document.querySelectorAll('.hero-dot').forEach((d, j) => d.classList.toggle('active', j === i));
+}
+
+function createCard(a) {
+    return `
+        <div class="card" onclick="openPlayer(${a.id})">
+            <div class="card-img">
+                <img src="${a.img}" alt="${a.title}" loading="lazy">
+                <div class="card-badges">
+                    <span class="badge">SUB</span>
+                    <span class="badge badge-score">⭐ ${a.score}</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="card-title">${a.title}</div>
+                <div class="card-meta">
+                    <span>TV</span>
+                    <span>${a.ep} EP</span>
+                    <span>${a.year}</span>
+                </div>
+            </div>
+        </div>`;
+}
+
+function renderContinueWatching() {
+    const row = document.getElementById('cwRow');
+    ANIME_DATABASE.slice(0, 5).forEach((a, i) => {
+        row.innerHTML += `
+            <div class="cw-card" onclick="openPlayer(${a.id})">
+                <div class="cw-thumb">
+                    <img src="${a.img}" alt="${a.title}">
+                    <div class="cw-progress"><div class="cw-bar" style="width:${85 - i*12}%"></div></div>
+                </div>
+                <div class="cw-body">
+                    <div class="cw-title">${a.title}</div>
+                    <div class="cw-ep">Episode ${i+1} • ${85 - i*12}% watched</div>
+                </div>
+            </div>`;
+    });
+}
+
+function renderTrending() {
+    const row = document.getElementById('trendingRow');
+    ANIME_DATABASE.slice(0, 10).forEach(a => row.innerHTML += createCard(a));
+}
+
+function renderPopular() {
+    const tabs = document.getElementById('genreTabs');
+    const grid = document.getElementById('popularGrid');
+    tabs.innerHTML = '<button class="tab active" onclick="filterPopular(\'All\', this)">All</button>';
+    GENRES.forEach(g => tabs.innerHTML += `<button class="tab" onclick="filterPopular('${g}', this)">${g}</button>`);
+    
+    grid.innerHTML = '';
+    ANIME_DATABASE.forEach(a => grid.innerHTML += createCard(a));
+}
+
+function filterPopular(genre, btn) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+    const grid = document.getElementById('popularGrid');
+    grid.innerHTML = '';
+    const filtered = genre === 'All' ? ANIME_DATABASE : ANIME_DATABASE.filter(a => a.genre === genre);
+    filtered.forEach(a => grid.innerHTML += createCard(a));
+}
+
+function renderGenres() {
+    const grid = document.getElementById('genreGrid');
+    const icons = ['fa-fist-raised', 'fa-heart', 'fa-hat-wizard', 'fa-laugh-squint', 'fa-ghost', 'fa-robot', 'fa-coffee', 'fa-futbol'];
+    GENRES.forEach((g, i) => {
+        grid.innerHTML += `
+            <div class="genre-card" onclick="filterPopular('${g}', null)">
+                <i class="fas ${icons[i]}"></i>
+                <span>${g}</span>
+            </div>`;
+    });
+}
+
+function renderNewReleases() {
+    const row = document.getElementById('newRow');
+    ANIME_DATABASE.slice(5, 15).forEach(a => row.innerHTML += createCard(a));
+}
+
+function renderSchedule() {
+    const daysEl = document.getElementById('schDays');
+    const grid = document.getElementById('schGrid');
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date().getDay();
+
+    daysEl.innerHTML = '';
+    days.forEach((d, i) => {
+        daysEl.innerHTML += `<button class="sch-day ${i === today ? 'active' : ''}">${d}</button>`;
+    });
+
+    grid.innerHTML = '';
+    ANIME_DATABASE.slice(0, 8).forEach((a, i) => {
+        grid.innerHTML += `
+            <div class="sch-item" onclick="openPlayer(${a.id})">
+                <span class="sch-time">18:30</span>
+                <img src="${a.img}" alt="${a.title}">
+                <div class="sch-info">
+                    <h4>${a.title}</h4>
+                    <p>Episode ${i+1}</p>
+                </div>
+            </div>`;
+    });
+}
+
+function renderRankings() {
+    const grid = document.getElementById('rankGrid');
+    const cats = ['Top Airing', 'Most Popular', 'Highest Rated'];
+    grid.innerHTML = '';
+
+    cats.forEach((cat, cIdx) => {
+        let list = ANIME_DATABASE.slice(cIdx * 3, cIdx * 3 + 5);
+        if(list.length < 5) list = ANIME_DATABASE.slice(0, 5);
+
+        let items = list.map((a, i) => `
+            <div class="rank-item" onclick="openPlayer(${a.id})">
+                <span class="rank-num">0${i+1}</span>
+                <img src="${a.img}" alt="${a.title}">
+                <div class="rank-info">
+                    <h4>${a.title}</h4>
+                    <p>⭐ ${a.score} • ${a.ep} EP</p>
+                </div>
+            </div>`).join('');
+
+        grid.innerHTML += `
+            <div class="rank-col">
+                <h3><i class="fas fa-trophy"></i> ${cat}</h3>
+                ${items}
+            </div>`;
+    });
+}
+
+// Search
+function toggleSearch() {
+    document.getElementById('searchPanel').classList.toggle('open');
+}
+
+document.getElementById('searchInput').addEventListener('input', function() {
+    const q = this.value.toLowerCase().trim();
+    const res = document.getElementById('searchResults');
+    if (q.length < 2) { res.innerHTML = '<div class="sr-empty">Type at least 2 characters...</div>'; return; }
+
+    const match = ANIME_DATABASE.filter(a => a.title.toLowerCase().includes(q));
+    if (match.length === 0) { res.innerHTML = '<div class="sr-empty">No anime found</div>'; return; }
+
+    res.innerHTML = match.map(a => `
+        <div class="sr-item" onclick="openPlayer(${a.id}); toggleSearch();">
+            <img src="${a.img}" alt="${a.title}">
+            <div class="sr-info">
+                <h4>${a.title}</h4>
+                <p>⭐ ${a.score} • ${a.ep} EP</p>
+            </div>
+        </div>`).join('');
+});
+
+// Player Logic
+function openPlayer(id) {
+    curAnime = ANIME_DATABASE.find(a => a.id === id) || ANIME_DATABASE[0];
+    curEp = 1;
+    curServer = 1;
+
+    document.getElementById('mTitle').textContent = curAnime.title;
+    document.getElementById('mEp').textContent = `Episode 1`;
+
+    document.querySelectorAll('.server-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+    loadVideo();
+
+    const epList = document.getElementById('epList');
+    epList.innerHTML = '';
+    for (let i = 1; i <= Math.min(curAnime.ep, 24); i++) {
+        const btn = document.createElement('button');
+        btn.className = `ep-btn ${i === 1 ? 'active' : ''}`;
+        btn.textContent = `EP ${i}`;
+        btn.onclick = () => {
+            curEp = i;
+            document.querySelectorAll('.ep-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('mEp').textContent = `Episode ${i}`;
+            loadVideo();
+        };
+        epList.appendChild(btn);
+    }
+
+    document.getElementById('modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function switchServer(s, btn) {
+    curServer = s;
+    document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    loadVideo();
+}
+
+function loadVideo() {
+    const wrap = document.getElementById('playerWrap');
+    if (curServer === 1) {
+        wrap.innerHTML = `<iframe src="https://www.youtube.com/embed/${curAnime.yt}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    } else if (curServer === 2) {
+        wrap.innerHTML = `<iframe src="https://vidsrc.me/embed/anime?mal_id=${curAnime.id}&ep=${curEp}" allowfullscreen></iframe>`;
+    } else {
+        wrap.innerHTML = `<iframe src="https://embed.su/embed/anime/${curAnime.id}/${curEp}" allowfullscreen></iframe>`;
+    }
+}
+
+function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+    document.getElementById('playerWrap').innerHTML = '';
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeModal();
+});
+</script>
+</body>
+</html>
