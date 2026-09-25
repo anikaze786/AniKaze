@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AniKaze - Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:#09090b;color:#fafafa;padding:30px;min-height:100vh}
+        .container{max-width:900px;margin:0 auto}
+        .header{display:flex;justify-content:space-between;align-items:center;padding-bottom:20px;border-bottom:1px solid #27272a;margin-bottom:30px}
+        .header h1{font-size:24px;color:#8b5cf6;display:flex;align-items:center;gap:10px}
+        .card{background:#111114;border:1px solid #27272a;border-radius:14px;padding:25px;margin-bottom:25px}
+        .card h2{font-size:18px;margin-bottom:15px;color:#ec4899;display:flex;align-items:center;gap:8px}
+        .form-group{margin-bottom:15px}
+        label{display:block;font-size:12px;color:#a1a1aa;margin-bottom:6px;font-weight:600}
+        input,textarea,select{width:100%;padding:12px 16px;background:#18181b;border:1px solid #27272a;border-radius:8px;color:#fff;font-size:14px;outline:none}
+        input:focus,textarea:focus{border-color:#8b5cf6}
+        .btn{padding:12px 24px;background:linear-gradient(135deg,#8b5cf6,#ec4899);border:none;border-radius:8px;color:#fff;font-weight:700;cursor:pointer;transition:0.3s;display:inline-flex;align-items:center;gap:8px}
+        .btn:hover{opacity:0.9;transform:translateY(-2px)}
+        .btn-sec{background:#27272a;margin-left:10px}
+        .login-box{max-width:400px;margin:100px auto;text-align:center}
+        .hidden{display:none}
+        .json-preview{background:#000;padding:15px;border-radius:8px;color:#10b981;font-family:monospace;font-size:12px;max-height:200px;overflow-y:auto;margin-top:15px}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="login-box card">
+        <h1><i class="fas fa-user-shield"></i> Admin Login</h1>
+        <p style="color:#a1a1aa;font-size:13px;margin:10px 0 20px;">Enter security password to access control panel</p>
+        <div class="form-group">
+            <input type="password" id="adminPass" placeholder="Enter Admin Password...">
+        </div>
+        <button class="btn" style="width:100%" onclick="checkLogin()"><i class="fas fa-lock-open"></i> Login Dashboard</button>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="dashboard" class="hidden">
+        <div class="header">
+            <h1><i class="fas fa-sliders-h"></i> AniKaze Control Panel</h1>
+            <button class="btn btn-sec" onclick="location.reload()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+
+        <!-- ADD ANIME CARD -->
+        <div class="card">
+            <h2><i class="fas fa-plus-circle"></i> Add New Custom Anime</h2>
+            <div class="form-group">
+                <label>Anime Title</label>
+                <input type="text" id="aTitle" placeholder="e.g. Solo Leveling Season 2">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px">
+                <div class="form-group">
+                    <label>Rating Score</label>
+                    <input type="text" id="aScore" placeholder="8.9">
+                </div>
+                <div class="form-group">
+                    <label>Total Episodes</label>
+                    <input type="number" id="aEp" placeholder="12">
+                </div>
+                <div class="form-group">
+                    <label>Genre</label>
+                    <select id="aGenre">
+                        <option>Action</option>
+                        <option>Romance</option>
+                        <option>Fantasy</option>
+                        <option>Comedy</option>
+                        <option>Horror</option>
+                        <option>Sci-Fi</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Poster Image URL (HD Image Link)</label>
+                <input type="text" id="aImg" placeholder="https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/...">
+            </div>
+            <div class="form-group">
+                <label>Video Stream Link (Embed URL)</label>
+                <input type="text" id="aStream" placeholder="https://vidsrc.me/embed/anime?...">
+            </div>
+            <div class="form-group">
+                <label>Description / Synopsis</label>
+                <textarea id="aDesc" rows="3" placeholder="Enter short story synopsis..."></textarea>
+            </div>
+            <button class="btn" onclick="generateAnimeJSON()"><i class="fas fa-save"></i> Save & Generate Data</button>
+        </div>
+
+        <!-- SITE NOTICE CARD -->
+        <div class="card">
+            <h2><i class="fas fa-bullhorn"></i> Update Announcement Notice</h2>
+            <div class="form-group">
+                <label>Top Banner Announcement Text</label>
+                <input type="text" id="siteNotice" value="Welcome to AniKaze - Watch HD Anime Free!">
+            </div>
+            <button class="btn" onclick="updateNotice()"><i class="fas fa-sync"></i> Update Announcement</button>
+        </div>
+
+        <!-- JSON OUTPUT & GITHUB INSTRUCTIONS -->
+        <div class="card">
+            <h2><i class="fas fa-code"></i> Data Export for GitHub</h2>
+            <p style="font-size:13px;color:#a1a1aa;margin-bottom:10px;">Copy this code and paste it inside <b>custom-data.json</b> in GitHub to publish instantly on Vercel!</p>
+            <div class="json-preview" id="jsonOutput">{ "notice": "Welcome!", "customAnime": [] }</div>
+            <button class="btn btn-sec" style="margin-top:15px;" onclick="copyJSON()"><i class="fas fa-copy"></i> Copy Data to Clipboard</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const DEFAULT_PASS = "admin123"; // CHANGE YOUR PASSWORD HERE
+    let siteData = {
+        notice: "Welcome to AniKaze Premium Anime Streaming!",
+        customAnime: []
+    };
+
+    function checkLogin() {
+        const pass = document.getElementById('adminPass').value;
+        if(pass === DEFAULT_PASS) {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            updateJSONDisplay();
+        } else {
+            alert("Wrong Password!");
+        }
+    }
+
+    function generateAnimeJSON() {
+        const title = document.getElementById('aTitle').value;
+        const score = document.getElementById('aScore').value || "8.5";
+        const ep = document.getElementById('aEp').value || 12;
+        const genre = document.getElementById('aGenre').value;
+        const img = document.getElementById('aImg').value || "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx151807-m1gX3iwRzwI2.jpg";
+        const stream = document.getElementById('aStream').value || "https://vidsrc.me/embed/anime?mal_id=52299&ep=1";
+        const desc = document.getElementById('aDesc').value || "New trending anime release.";
+
+        if(!title) { alert("Please enter Anime Title!"); return; }
+
+        const newAnime = {
+            id: Date.now(),
+            title: title,
+            score: score,
+            episodes: parseInt(ep),
+            year: new Date().getFullYear(),
+            genre: genre,
+            img: img,
+            streamUrl: stream,
+            desc: desc
+        };
+
+        siteData.customAnime.unshift(newAnime);
+        updateJSONDisplay();
+        alert("New Anime Added Successfully! Copy the code below and update custom-data.json on GitHub.");
+        
+        // Reset Inputs
+        document.getElementById('aTitle').value = '';
+        document.getElementById('aImg').value = '';
+        document.getElementById('aStream').value = '';
+        document.getElementById('aDesc').value = '';
+    }
+
+    function updateNotice() {
+        siteData.notice = document.getElementById('siteNotice').value;
+        updateJSONDisplay();
+        alert("Notice Updated!");
+    }
+
+    function updateJSONDisplay() {
+        document.getElementById('jsonOutput').textContent = JSON.stringify(siteData, null, 2);
+    }
+
+    function copyJSON() {
+        const text = document.getElementById('jsonOutput').textContent;
+        navigator.clipboard.writeText(text);
+        alert("Data copied to clipboard! Now paste it into custom-data.json on GitHub.");
+    }
+</script>
+
+</body>
+</html>
